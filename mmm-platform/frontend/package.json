@@ -22,7 +22,8 @@
     "date-fns": "^2.30.0",
     "react-icons": "^4.11.0",
     "recharts": "^2.9.0",
-    "tailwindcss": "^3.3.5"
+    "tailwindcss": "^3.3.5",
+    "serve": "^14.2.1"
   },
   "scripts": {
     "start": "react-scripts start",

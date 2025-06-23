@@ -1,0 +1,13 @@
+[phases.setup]
+nixPkgs = ["...", "nodejs-18_x"]
+
+[phases.install]
+dependsOn = ["setup"]
+cmds = ["npm ci"]
+
+[phases.build]
+dependsOn = ["install"]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npx serve -s build -l $PORT"
