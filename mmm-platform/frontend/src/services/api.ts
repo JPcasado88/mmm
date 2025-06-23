@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+// Try to auto-detect backend URL if not set
+const API_BASE_URL = process.env.REACT_APP_API_URL || 
+  (window.location.hostname.includes('railway.app') 
+    ? `https://${window.location.hostname.replace('-fe-', '-')}`  // Assumes backend has same prefix
+    : 'http://localhost:8000');
+
+console.log('API Base URL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -8,6 +14,15 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Add response interceptor for better error handling
+api.interceptors.response.use(
+  response => response,
+  error => {
+    console.error('API Error:', error.config?.url, error.response?.status, error.response?.data);
+    return Promise.reject(error);
+  }
+);
 
 export interface Channel {
   name: string;
