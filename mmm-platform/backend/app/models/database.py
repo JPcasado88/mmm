@@ -6,9 +6,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/mmm_db")
+# Use SQLite for simplicity in deployment
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./mmm_platform.db")
 
-engine = create_engine(DATABASE_URL)
+# Add check_same_thread=False for SQLite
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(DATABASE_URL)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
