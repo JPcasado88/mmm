@@ -1,14 +1,13 @@
 [phases.setup]
 nixPkgs = ["...", "python311", "gcc"]
-aptPkgs = ["...", "python3-pip"]
+aptPkgs = ["...", "python3-pip", "python3-venv"]
 
 [phases.install]
 dependsOn = ["setup"]
 cmds = [
-    "python --version",
-    "pip --version",
-    "pip install -r requirements.txt"
+    "python3 -m venv /opt/venv",
+    ". /opt/venv/bin/activate && pip install -r requirements.txt"
 ]
 
 [start]
-cmd = "cd mmm-platform/backend && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"
+cmd = ". /opt/venv/bin/activate && cd mmm-platform/backend && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"
