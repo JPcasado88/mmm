@@ -37,13 +37,18 @@ class OptimizationService:
         current_revenue = self._calculate_current_revenue()
         revenue_lift = projected_revenue - current_revenue
         
+        # Calculate more realistic ROI improvement
+        current_roi = (current_revenue - total_budget) / total_budget * 100 if total_budget > 0 else 0
+        projected_roi = (projected_revenue - total_budget) / total_budget * 100 if total_budget > 0 else 0
+        roi_improvement = projected_roi - current_roi
+        
         return {
             'total_budget': total_budget,
             'optimized_allocation': optimal_allocation,
             'projected_revenue': round(projected_revenue, 2),
             'current_revenue': round(current_revenue, 2),
             'revenue_lift': round(revenue_lift, 2),
-            'roi_improvement': round((revenue_lift / total_budget) * 100, 2),
+            'roi_improvement': round(roi_improvement, 2),
             'recommendations': self._generate_recommendations(optimal_allocation)
         }
     
@@ -106,15 +111,16 @@ class OptimizationService:
         """Find the spend level where marginal returns become negligible"""
         a, b = coefficients
         
-        # Saturation point is where derivative < 0.1 (10 cents return per dollar spent)
+        # Saturation point is where derivative < 1.0 (1:1 ROAS on marginal spend)
         # derivative of a*log(x+1)+b is a/(x+1)
-        # a/(x+1) = 0.1, so x = a/0.1 - 1
+        # a/(x+1) = 1.0, so x = a/1.0 - 1
         
         if a > 0:
-            saturation = (a / 0.1) - 1
-            return min(saturation, 20000)  # Cap at 20k daily spend
+            saturation = a - 1
+            # More realistic saturation points by channel
+            return min(saturation, 5000)  # Cap at 5k daily spend
         else:
-            return 10000  # Default if curve fitting fails
+            return 2000  # Default if curve fitting fails
     
     def _run_optimization(self, total_budget: float, channel_curves: Dict) -> Dict:
         """Run the optimization algorithm"""
@@ -184,11 +190,20 @@ class OptimizationService:
         for channel, spend in allocation.items():
             if channel in channel_curves:
                 curve = channel_curves[channel]
+                # Apply diminishing returns more aggressively
                 revenue = curve['a'] * np.log(spend + 1) + curve['b']
-                total_revenue += revenue
+                
+                # Apply additional penalty for spend beyond current levels
+                current_spend = curve.get('current_spend', spend)
+                if spend > current_spend * 1.5:
+                    # Reduce projected revenue for aggressive increases
+                    penalty_factor = 0.8
+                    revenue = revenue * penalty_factor
+                
+                total_revenue += max(revenue, 0)  # Ensure non-negative
             else:
-                # Fallback to historical average ROAS
-                total_revenue += spend * 5
+                # Fallback to conservative ROAS
+                total_revenue += spend * 2.5
         
         return total_revenue
     
