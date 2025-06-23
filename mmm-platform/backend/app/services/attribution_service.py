@@ -63,11 +63,26 @@ class AttributionService:
             'clicks': d.clicks
         } for d in data])
         
+        # If no data, create empty DataFrame with proper structure
+        if df.empty:
+            df = pd.DataFrame(columns=['date', 'channel', 'conversions', 'revenue', 'clicks'])
+        
         return df
     
     def _last_click_attribution(self, df: pd.DataFrame) -> List[Dict]:
         """Last click attribution - 100% credit to last touchpoint"""
         results = []
+        
+        # If DataFrame is empty, return default channels with zero values
+        if df.empty:
+            for channel in ['Google Ads', 'Meta Ads', 'Email', 'TikTok', 'Affiliate']:
+                results.append({
+                    'channel': channel,
+                    'attributed_conversions': 0,
+                    'attributed_revenue': 0.0,
+                    'percentage': 0.0
+                })
+            return results
         
         for channel in df['channel'].unique():
             channel_data = df[df['channel'] == channel]

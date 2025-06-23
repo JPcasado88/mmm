@@ -15,7 +15,7 @@ function ChannelPerformance() {
   const [loading, setLoading] = useState(true);
   const [dateRange] = useState({
     start: format(subDays(new Date(), 90), 'yyyy-MM-dd'),
-    end: format(new Date(), 'yyyy-MM-dd'),
+    end: format(subDays(new Date(), 1), 'yyyy-MM-dd'), // Use yesterday as end date
   });
 
   useEffect(() => {

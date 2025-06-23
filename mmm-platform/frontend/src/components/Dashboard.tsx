@@ -50,7 +50,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState({
     start: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
-    end: format(new Date(), 'yyyy-MM-dd'),
+    end: format(subDays(new Date(), 1), 'yyyy-MM-dd'), // Use yesterday as end date
   });
 
   useEffect(() => {
