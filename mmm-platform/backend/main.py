@@ -6,25 +6,52 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional, Dict, List
+from contextlib import asynccontextmanager
 
-from app.models.database import get_db
+from app.models.database import get_db, SessionLocal, Base, engine
+from app.models.models import DailyMarketingData
 from app.services.metrics_service import MetricsService
 from app.services.attribution_service import AttributionService
 from app.services.optimization_service import OptimizationService
 
 load_dotenv()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Create tables and seed data if empty
+    Base.metadata.create_all(bind=engine)
+    
+    db = SessionLocal()
+    try:
+        # Check if we have any data
+        count = db.query(DailyMarketingData).count()
+        if count == 0:
+            print("No data found. Seeding database...")
+            # Import here to avoid circular imports
+            from seed_data import seed_database
+            seed_database()
+            print("Database seeded successfully!")
+        else:
+            print(f"Database has {count} marketing data records")
+    finally:
+        db.close()
+    
+    yield
+    # Shutdown: cleanup (if needed)
+
 app = FastAPI(
     title="MMM Platform API",
     description="Marketing Mix Modeling Platform for ROI optimization",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # Configure CORS
 origins = [
     "http://localhost:3000",
     "https://*.up.railway.app",
-    "https://*.railway.app"
+    "https://*.railway.app",
+    "*"  # Allow all origins for now
 ]
 
 # Add environment-specific origins
@@ -33,7 +60,7 @@ if os.getenv("FRONTEND_URL"):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Allow all origins temporarily
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
