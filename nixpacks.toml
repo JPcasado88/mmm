@@ -1,9 +1,14 @@
 [phases.setup]
-nixpkgs = ["python311", "gcc"]
+nixPkgs = ["...", "python311", "gcc"]
+aptPkgs = ["...", "python3-pip"]
 
 [phases.install]
 dependsOn = ["setup"]
-cmds = ["pip install -r requirements.txt"]
+cmds = [
+    "python --version",
+    "pip --version",
+    "pip install -r requirements.txt"
+]
 
 [start]
 cmd = "cd mmm-platform/backend && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"
