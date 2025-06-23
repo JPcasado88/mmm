@@ -1,0 +1,9 @@
+[phases.setup]
+nixPkgs = ["...", "docker-compose"]
+
+[providers]
+node = true
+python = true
+
+[start]
+cmd = "docker-compose up"
