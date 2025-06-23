@@ -27,7 +27,7 @@ function AttributionComparison() {
   const [loading, setLoading] = useState(true);
   const [dateRange] = useState({
     start: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
-    end: format(new Date(), 'yyyy-MM-dd'),
+    end: format(subDays(new Date(), 1), 'yyyy-MM-dd'), // Use yesterday as end date
   });
 
   useEffect(() => {
@@ -45,8 +45,20 @@ function AttributionComparison() {
       // Fetch comparison data
       const comparison = await api.compareAttributionModels(dateRange.start, dateRange.end);
       setComparisonData(comparison);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching attribution data:', error);
+      // Set some default data to prevent infinite loading
+      setComparisonData({
+        models: {
+          last_click: [],
+          linear: [],
+          time_decay: [],
+          u_shaped: [],
+          data_driven: []
+        },
+        channel_variance: {},
+        recommendation: "Unable to load attribution data. Please try again later."
+      });
     } finally {
       setLoading(false);
     }
