@@ -12,8 +12,12 @@ class AttributionService:
     
     def calculate_attribution(self, start_date: str, end_date: str, model_type: str = 'linear') -> Dict:
         """Calculate attribution for a given period and model"""
-        start = datetime.strptime(start_date, "%Y-%m-%d")
-        end = datetime.strptime(end_date, "%Y-%m-%d")
+        try:
+            start = datetime.strptime(start_date, "%Y-%m-%d")
+            end = datetime.strptime(end_date, "%Y-%m-%d")
+        except ValueError as e:
+            # Handle date parsing errors
+            return {'error': f'Invalid date format: {str(e)}'}
         
         # Get conversion data
         conversions_data = self._get_conversions_data(start, end)
@@ -47,10 +51,14 @@ class AttributionService:
         # For simplicity, we'll simulate touchpoint data based on channel interactions
         # In a real system, this would come from user journey tracking
         
+        # Convert datetime to date for comparison
+        start_date = start.date() if hasattr(start, 'date') else start
+        end_date = end.date() if hasattr(end, 'date') else end
+        
         data = self.db.query(DailyMarketingData).filter(
             and_(
-                DailyMarketingData.date >= start,
-                DailyMarketingData.date <= end
+                DailyMarketingData.date >= start_date,
+                DailyMarketingData.date <= end_date
             )
         ).all()
         
@@ -308,9 +316,15 @@ class AttributionService:
         models = ['last_click', 'linear', 'time_decay', 'u_shaped', 'data_driven']
         comparison = {}
         
-        for model in models:
-            result = self.calculate_attribution(start_date, end_date, model)
-            comparison[model] = result['results']
+        try:
+            for model in models:
+                result = self.calculate_attribution(start_date, end_date, model)
+                comparison[model] = result.get('results', [])
+        except Exception as e:
+            print(f"Error in attribution comparison: {str(e)}")
+            # Return empty results on error
+            for model in models:
+                comparison[model] = []
         
         # Calculate variance across models
         channel_variance = {}

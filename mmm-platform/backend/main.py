@@ -165,8 +165,14 @@ async def calculate_attribution(start_date: str, end_date: str, model: str = "li
 @app.get("/api/attribution/compare")
 async def compare_attribution_models(start_date: str, end_date: str, db: Session = Depends(get_db)):
     """Compare results across different attribution models"""
-    attribution_service = AttributionService(db)
-    return attribution_service.compare_attribution_models(start_date, end_date)
+    try:
+        attribution_service = AttributionService(db)
+        return attribution_service.compare_attribution_models(start_date, end_date)
+    except Exception as e:
+        print(f"Attribution comparison error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
