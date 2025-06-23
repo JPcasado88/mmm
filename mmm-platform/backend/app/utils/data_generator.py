@@ -157,7 +157,12 @@ class MMMDataGenerator:
             cpm = channel_config['base_cpm'] * (1 + random.uniform(-0.2, 0.2))
             impressions = int((daily_spend / cpm) * 1000)
         else:
-            impressions = 0
+            # Email has list-based impressions
+            if channel == 'Email':
+                email_list_size = 50000 * (1 + (date - datetime(2022, 1, 1)).days / 730 * 0.5)  # 50% growth over 2 years
+                impressions = int(email_list_size * 0.25)  # 25% open rate
+            else:
+                impressions = 0
         
         # Calculate clicks (CTR varies by channel)
         ctr_rates = {

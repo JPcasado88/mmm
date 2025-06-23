@@ -239,9 +239,25 @@ function Dashboard() {
             <h3 className="text-sm font-medium text-blue-800">Quick Insights</h3>
             <div className="mt-2 text-sm text-blue-700">
               <ul className="list-disc list-inside space-y-1">
-                <li>Email has the highest ROAS at {metrics.channels.find(c => c.name === 'Email')?.roas.toFixed(2)}x</li>
-                <li>TikTok spend is growing rapidly with strong returns</li>
-                <li>Google Ads may be hitting diminishing returns</li>
+                {(() => {
+                  const topChannel = metrics.channels.reduce((prev, current) => 
+                    (prev.roas > current.roas) ? prev : current
+                  );
+                  const highSpendChannel = metrics.channels.find(c => c.name === 'Google Ads');
+                  const growthChannel = metrics.channels.find(c => c.name === 'TikTok');
+                  
+                  return (
+                    <>
+                      <li>{topChannel.name} has the highest ROAS at {topChannel.roas.toFixed(2)}x</li>
+                      {growthChannel && growthChannel.roas > 1 && (
+                        <li>TikTok is showing strong performance with {growthChannel.roas.toFixed(2)}x ROAS</li>
+                      )}
+                      {highSpendChannel && highSpendChannel.spend > metrics.total_spend * 0.4 && (
+                        <li>Google Ads accounts for {((highSpendChannel.spend / metrics.total_spend) * 100).toFixed(0)}% of total spend</li>
+                      )}
+                    </>
+                  );
+                })()}
               </ul>
             </div>
           </div>

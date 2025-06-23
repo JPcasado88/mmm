@@ -20,10 +20,10 @@ def seed_database():
         # Initialize the data generator
         generator = MMMDataGenerator()
         
-        # Generate 2 years of marketing data ending at current date
+        # Generate 2 years of marketing data ending yesterday
         print("Generating marketing data...")
-        # End at current date, start 2 years before
-        end_date = datetime.now()
+        # End at yesterday, start 2 years before
+        end_date = datetime.now() - pd.Timedelta(days=1)
         start_date = end_date - pd.Timedelta(days=730)
         marketing_data = generator.generate_two_years_data(start_date)
         
